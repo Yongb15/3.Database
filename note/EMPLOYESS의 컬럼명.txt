@@ -8,4 +8,4 @@ JOB_ID : 직종
 SALARY : 급여
 COMMISSION_PCT : 보너스율
 MANAGER_ID : 상사의 사원번호
-DEPARTMENT_ID부서번호
+DEPARTMENT_ID : 부서번호
