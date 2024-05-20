@@ -263,7 +263,8 @@ FROM EMPLOYEES;
 
 -- 사원 테이블에서 직종이 SA_REP인 사원들의 평균 급여, 급여 최고액, 급여 최저액, 급여의 총합을 출력
 SELECT avg(salary) "평균 급여", max(salary) "급여 최고액", min(salary) "급여 최저액", sum(salary) "급여의 총합"
-FROM EMPLOYEES;
+FROM EMPLOYEES
+WHERE JOB_ID = 'SA_REP';
 
 ------------------------------------------------------- 집계 함수 예제
 
