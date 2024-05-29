@@ -317,7 +317,7 @@ SELECT *
 FROM JOBS;
 
 CREATE OR REPLACE PROCEDURE MY_NEW_JOB_PROC(
-	P_JOB_ID IN JOBS.JOB_ID %TYPE,			-- JOB_ID의 타입과 크기를 그대로 따라감
+	P_JOB_ID IN JOBS.JOB_ID %TYPE,			-- %TYPE은 JOB_ID의 타입과 크기를 그대로 따라감
 	P_JOB_TITLE IN JOBS.JOB_TITLE %TYPE,
 	P_MIN_SALARY IN JOBS.MIN_SALARY %TYPE,
 	P_MAX_SALARY IN JOBS.MAX_SALARY %TYPE
@@ -329,11 +329,54 @@ BEGIN
 	dbms_output.put_line('ALL DONE ABOUT' || ' ' || P_JOB_ID);
 END;
 
-CALL MY_NEW_JOB_PROC('IT', 'Developer', 14000, 20000);
+CALL MY_NEW_JOB_PROC('IT', 'Developer', 14000, 20000);		-- P_JOB_ID는 PK이므로 중복 삽입이 안됨
 
+-- INSERT 기능을 하는 프로스저를 만들었는데 PK제약조건으로 인해 겹칠 때 오류를 내는 것이 아닌 UPDATE를 해서 내용이 수정되도록 만들기
+CREATE OR REPLACE PROCEDURE MY_NEW_JOB_PROC(
+	P_JOB_ID IN JOBS.JOB_ID %TYPE,			-- %TYPE은 JOB_ID의 타입과 크기를 그대로 따라감
+	P_JOB_TITLE IN JOBS.JOB_TITLE %TYPE,
+	P_MIN_SALARY IN JOBS.MIN_SALARY %TYPE,
+	P_MAX_SALARY IN JOBS.MAX_SALARY %TYPE
+)
+IS		-- 지역 변수 생성 가능
+	 CNT NUMBER := 0;
+BEGIN 
+	SELECT COUNT(*) INTO CNT FROM JOBS WHERE JOB_ID = P_JOB_ID;		-- 이 쿼리문으로부터 나온 결과를 CNT에 대입 / 있으면 1, 없으면 0
+	-- 조회가 안되면 INSERT, 조회가 되면 UPDATE를 하도록 작성
+	IF CNT = 0 THEN
+		INSERT INTO JOBS
+		VALUES (P_JOB_ID, P_JOB_TITLE, P_MIN_SALARY, P_MAX_SALARY);
+		dbms_output.put_line('INSERT DONE ABOUT' || ' ' || P_JOB_ID);	
+	ELSE
+		UPDATE JOBS
+		SET JOB_TITLE = P_JOB_TITLE, MIN_SALARY = P_MIN_SALARY, MAX_SALARY = P_MAX_SALARY	-- 여러 개의 값을 UPDATE 할 경우 ,로 구분 
+		WHERE JOB_ID = P_JOB_ID;	-- 조건은 명확하게! 이거 때문에 못풀음..
+		dbms_output.put_line('UPDATE DONE ABOUT' || ' ' || P_JOB_ID);
+	END IF;
+END;
 
+CALL MY_NEW_JOB_PROC('IT', 'B/E', 14000, 20000);		-- P_JOB_ID는 PK이므로 중복 삽입이 안됨
 
+-- JOB_ID 값을 전달받아 DELETE문이 작동하는 DEL_JOB_PROC 만들기	
+-- 만약에 없으면 'NO EIXST 직종' 출력 
+CREATE OR REPLACE PROCEDURE DEL_JOB_PROC(
+	P_JOB_ID IN JOBS.JOB_ID %TYPE
+)
+IS
+	CNT NUMBER := 0;
+BEGIN 
+	SELECT COUNT(*) INTO CNT FROM JOBS WHERE JOB_ID = P_JOB_ID;
 
+	IF CNT = 1 THEN
+		DELETE FROM JOBS		-- 컬럼명을 못찾아서 오류가 남 / 주의할 것 / 이거 때문에 CALL에서 오류가 남
+ 		WHERE JOB_ID = P_JOB_ID;
+		dbms_output.put_line('DELETE DONE ABOUT' || ' ' || P_JOB_ID);
+	ELSE
+		dbms_output.put_line('NO EIXST ' || P_JOB_ID);
+	END IF;
+END;
 
+CALL DEL_JOB_PROC('IT');
 
-
+SELECT *
+FROM JOBS;
